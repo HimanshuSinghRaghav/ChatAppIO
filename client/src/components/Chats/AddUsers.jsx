@@ -5,7 +5,7 @@ import { createChat, getChat, getContacts, userChat } from '../../apis'
 import { setUser } from '../../redux/slices'
 import { setChat } from '../../redux/slices/chatSlice'
 import { setMessages } from '../../redux/slices/messageSlice'
-const AddUsers = () => {
+const AddUsers = ({setShowUsers}) => {
     const dispatch = useDispatch()
     const [isLoading, setIsLoading] = useState(false)
     const [selectedUser, setSelectedUser] = useState(null)
@@ -21,6 +21,7 @@ const AddUsers = () => {
     }
 
     const setCurrentChat = async (receiverId) => {
+        setShowUsers(false)
         const chat = await createChat({ senderId: auth._id, receiverId })
         const userChatsWithCurrentUser = await userChat(auth._id , receiverId)
         const messages = await getChat(userChatsWithCurrentUser._id)
@@ -47,7 +48,10 @@ const AddUsers = () => {
                                 <img src={user.profile_picture} className='w-14 rounded-full h-14' />
                                 <div >
                                 <p className='text-xl text-gray-700 font-serif'>{user.name}</p>
-                                {user.isOnline &&<div className='flex items-center space-x-2'><section className='w-2 h-2 rounded-full bg-green-500'></section> <p className='text-gray-600 font-bold'>Online</p></div>}
+                                {user.isOnline &&<div className='flex items-center space-x-2'>
+                                    {!user?.isTyping && <section className='w-2 h-2 rounded-full bg-green-500'></section>}
+                                     <p className='text-gray-600 font-bold'>{user?.isTyping?'':'Online'}</p>
+                                <i className='text-green-500 font-bold '>{user?.isTyping?'...typing':''}</i></div>}
                                 </div>
                             </div>
                         )

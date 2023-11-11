@@ -16,6 +16,8 @@ const index = () => {
   const [receivedMessage, setReceivedMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(true)
   const [users, setUsers] = useState([])
+  const [showUsers, setShowUsers] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
   const socket = useRef()
   
   const getContact = async () => {
@@ -46,6 +48,34 @@ useEffect(() => {
       socket.current.emit("send-message", sendMessage);
     }
   }, [sendMessage]);
+
+  useEffect(() => {
+    console.log(isTyping , '///////////')
+      const userId = userChatsWithCurrentUser.members.find((id)=>id!==auth._id);
+      const user = users.find((user)=>user._id===userId)
+      socket.current.emit("is-typing", {receiverId:user?._id ,senderId:auth._id, isTyping});
+  }, [isTyping]);
+
+  useEffect(() => {
+    socket.current.on("is-user-typing", async(data) => {
+      const contact = await getContacts()
+      console.log(contact)
+      const updatedContacts = contact.map(user => {
+        if (user._id === data.senderId) {
+          if (data.isTyping) {
+            return {...user, isOnline:true,isTyping:true}
+          } else {
+            return {...user,isOnline:true, isTyping: false}
+          }
+        } else {
+          return user
+        }
+      })
+      dispatch(setUser(updatedContacts))
+      setUsers(updatedContacts)
+    })
+
+  }, []);
 
    // Get the message from socket server
    useEffect(() => {
@@ -80,15 +110,15 @@ useEffect(() => {
       })
       dispatch(setUser(updatedContacts))
 
-      setUsers(updatedContacts)
+      // setUsers(updatedContacts)
   }, [onlineUsers, users])
   return (
     <div className='flex h-screen p-4 m-4 space-x-2'>
-     { isLoading?<>...Loading</>:<><div className='w-1/4 bg-gray-200 bg-opacity-40 rounded-md'>
-        <Chats/>
+     { isLoading?<>...Loading</>:<><div className={`md:block md:w-1/4 bg-gray-200 bg-opacity-40 rounded-md ${showUsers?'block w-full':'hidden'}`}>
+        <Chats setShowUsers={setShowUsers}/>
       </div>
-       <div className='w-4/5  bg-gray-200 bg-opacity-40 rounded-md'>
-        <Conversetion setSendMessage={setSendMessage} receivedMessage={receivedMessage}/>
+       <div className={`w-full md:w-4/5  bg-gray-200 bg-opacity-40 rounded-md ${showUsers?'hidden md:blobk':'block'}`}>
+        <Conversetion setIsTyping={setIsTyping} setSendMessage={setSendMessage} receivedMessage={receivedMessage} setShowUsers={setShowUsers}/>
        </div></>}
       </div>
   )

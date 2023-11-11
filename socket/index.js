@@ -26,6 +26,14 @@ io.on("connection" , (socket) => {
             }  
         }) 
 
+        socket.on("is-typing" , (data) => {
+            const user = activeUsers.find((user) => user.userId === data.receiverId); 
+            console.log(activeUsers,user ,data,'typing')
+            if(user){ 
+                io.to(user.socketId).emit("is-user-typing" , {...data , isTyping : data.isTyping})
+            }  
+        })
+
         socket.on("disconnect" , () => {
             activeUsers = activeUsers.filter((user) => user.socketId !== socket.id);
             console.log("disconnected" , activeUsers);

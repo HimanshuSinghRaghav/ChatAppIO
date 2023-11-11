@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { setMessages } from '../../redux/slices/messageSlice'
 import CurrentUser from './CurrentUser'
 
-const Conversection = ({setSendMessage , receivedMessage}) => {
+const Conversection = ({setSendMessage , receivedMessage , setShowUsers ,setIsTyping}) => {
   const dispatch = useDispatch()
   const [message, setMessage] = useState('')
   const auth = useSelector((state) => state.auth)
@@ -21,6 +21,7 @@ const Conversection = ({setSendMessage , receivedMessage}) => {
     scroll.current?.scrollIntoView({ behavior: "smooth" });
   },[allMessages])
   const sendMessage = async () => {
+    setIsTyping(false)
     if (message === '') return
     const newMessage = {
       senderId : auth._id,
@@ -73,6 +74,13 @@ useEffect(()=> {
   
 },[receivedMessage])
 
+
+useEffect(() => {
+  if(message===""){
+    setIsTyping(false)
+  }
+},[message])
+
 useEffect(() => {
   messageEndRef.current?.scrollIntoView({ behavior: 'smooth' }); // Scroll to the last message
 }, [allMessages]);
@@ -93,12 +101,12 @@ const groupedMessages = groupMessagesByDate(allMessages);
 
   return (
     <div className='h-full p-6 space-y-2'>
-      <div className='h-[10%]'><CurrentUser /></div>
+      <div className='h-[10%]'><CurrentUser setShowUsers={setShowUsers} /></div>
       <div className='h-[80%] space-y-4 mb-2 overflow-y-scroll w-full relative'>
 
 {groupedMessages.map(({ date, messages }) => {
   return <>
-  <div className='flex justify-center'><p className='bg-gray-200 inline-block text-center px-2 py-1 rounded-md text-gray-500 font-medium'>{date}</p></div>
+  <div className='flex justify-center'>{date!=="Invalid Date" && <p className='bg-gray-200 inline-block text-center px-2 py-1 rounded-md text-gray-500 font-medium'>{date}</p>}</div>
    {messages?.map((message) => 
         
         {
@@ -106,7 +114,7 @@ const groupedMessages = groupMessagesByDate(allMessages);
           const time = formatTime(message.createdAt)
           return <div key={message._id} className={`w-full flex flex-col-reverse ${message.senderId !== auth._id ? 'items-start' : 'items-end'}`}>
             {/* {date} */}
-            <div className={`p-4 inline-block max-w-10 bg-white rounded-xl  ${message.senderId !== auth._id ? 'rounded-tl-none' : 'rounded-tr-none'}`}>
+            <div className={`p-4 inline-block min-w-1/2 bg-white rounded-xl  ${message.senderId !== auth._id ? 'rounded-tl-none' : 'rounded-tr-none'}`}>
               {message.text} {time}
               
             </div>
@@ -122,7 +130,7 @@ const groupedMessages = groupMessagesByDate(allMessages);
         
         <input
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => {setMessage(e.target.value) , setIsTyping(true)}}
           onKeyDown={(e) => {
             if (e.key==="Enter") {
               console.log(e.key)
