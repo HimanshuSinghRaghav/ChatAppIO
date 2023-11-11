@@ -12,7 +12,7 @@ const Conversection = ({setSendMessage , receivedMessage}) => {
   const currentChat = useSelector((state) => state.currentChat)
   const { userChatsWithCurrentUser, messages } = useSelector((state) => state.messages)
   const [allMessages, setAllMessages] = useState(messages)
-  const parentDivRef = useRef(null);
+  const messageEndRef = useRef(null);
 
 
   useEffect(() => {setAllMessages(messages)}, [messages])
@@ -68,14 +68,13 @@ useEffect(()=> {
     setAllMessages([...allMessages, receivedMessage]);
   }
 
-    console.log(parentDivRef.current , parentDivRef.current.scrollTop ,parentDivRef.current.scrollHeight)
-    parentDivRef.current.scrollIntoView({ behavior: 'smooth'})
+    
   
   
 },[receivedMessage])
 
 useEffect(() => {
-  parentDivRef.current.scrollIntoView({ behavior: 'smooth' }); // Scroll to the last message
+  messageEndRef.current?.scrollIntoView({ behavior: 'smooth' }); // Scroll to the last message
 }, [allMessages]);
 
 const groupMessagesByDate = (messages) => {
@@ -95,7 +94,7 @@ const groupedMessages = groupMessagesByDate(allMessages);
   return (
     <div className='h-full p-6 space-y-2'>
       <div className='h-[10%]'><CurrentUser /></div>
-      <div ref={parentDivRef} className='h-[80%] space-y-4 mb-2 overflow-y-scroll w-full relative'>
+      <div className='h-[80%] space-y-4 mb-2 overflow-y-scroll w-full relative'>
 
 {groupedMessages.map(({ date, messages }) => {
   return <>
@@ -107,10 +106,11 @@ const groupedMessages = groupMessagesByDate(allMessages);
           const time = formatTime(message.createdAt)
           return <div key={message._id} className={`w-full flex flex-col-reverse ${message.senderId !== auth._id ? 'items-start' : 'items-end'}`}>
             {/* {date} */}
-            <div className={`p-4 inline-block bg-white rounded-xl  ${message.senderId !== auth._id ? 'rounded-tl-none' : 'rounded-tr-none'}`}>
+            <div className={`p-4 inline-block max-w-10 bg-white rounded-xl  ${message.senderId !== auth._id ? 'rounded-tl-none' : 'rounded-tr-none'}`}>
               {message.text} {time}
               
             </div>
+            <div ref={messageEndRef} />
           </div>
 })}
   </>
